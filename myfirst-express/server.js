@@ -3,6 +3,7 @@ const PORT = 3000;
 const app = express();
 const userRouter = require("./routes/userRouter");
 const productRouter = require("./routes/productRouter");
+const isAuthenticated = require("./middlewares/isAuthenticated");
 
 app.use(express.json());
 //home
@@ -13,7 +14,7 @@ app.get("/", (req, res) => {
   });
 });
 //user Routing
-app.use("/users", userRouter);
+app.use("/users", isAuthenticated, userRouter);
 //product routing
 app.use("/products", productRouter);
 //start the server
