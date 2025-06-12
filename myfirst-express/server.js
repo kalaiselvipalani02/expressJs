@@ -2,27 +2,42 @@ const express = require("express");
 const PORT = 3000;
 const app = express();
 const path = require("path");
+//Serve the static files/folder
+app.use(express.static(path.join(__dirname, "public")));
 
-//step 1: serve static file
-app.use(express.static(path.join(__dirname, "public"))); //dynamic folder path
-//route the html pages
+app.set("view engine", "ejs");
+//route the ejs pages
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "/public/views", "home.html"));
+  res.render("home");
 });
-
-//about
 app.get("/about", (req, res) => {
-  res.sendFile(path.join(__dirname, "/public/views", "about.html"));
+  res.render("about");
 });
-
-//contact
-app.get("/contact", (req, res) => {
-  res.sendFile(path.join(__dirname, "/public/views", "contact.html"));
-});
-
-//gallery
 app.get("/gallery", (req, res) => {
-  res.sendFile(path.join(__dirname, "/public/views", "gallery.html"));
+  res.render("gallery");
+});
+app.get("/contact", (req, res) => {
+  res.render("contact");
+});
+app.get("/products", (req, res) => {
+  const products = [
+    { name: "Laptop", price: 1999 },
+    { name: "Phone", price: 899 },
+    { name: "Tablet", price: 699 },
+    { name: "HeadSet", price: 299 },
+  ];
+
+  res.render("product", { products });
+});
+app.get("/user", (req, res) => {
+  //get data from db., now use dummy data
+  const userData = {
+    username: "Alice",
+    age: 25,
+    isPremiumUser: true,
+    email: "alice@gmail.com",
+  };
+  res.render("userData", userData);
 });
 //start the server
 app.listen(PORT, () => {
