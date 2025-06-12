@@ -5,7 +5,17 @@ const userRouter = require("./routes/userRouter");
 const productRouter = require("./routes/productRouter");
 const isAuthenticated = require("./middlewares/isAuthenticated");
 
-app.use(express.json());
+//!built in middleware
+app.use(express.json()); //body request
+//app.use(express.static()); //handle static files
+//app.use(express.urlencoded()); //handle form data
+//!Application level middleware
+//Logging details of every request
+app.use((req, res, next) => {
+  console.log("App level middleware");
+  next(); //call next middleware or call handler
+});
+
 //home
 app.get("/", (req, res) => {
   res.json({
