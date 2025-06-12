@@ -1,32 +1,29 @@
 const express = require("express");
 const PORT = 3000;
 const app = express();
-const userRouter = require("./routes/userRouter");
-const productRouter = require("./routes/productRouter");
-const isAuthenticated = require("./middlewares/isAuthenticated");
+const path = require("path");
 
-//!built in middleware
-app.use(express.json()); //body request
-//app.use(express.static()); //handle static files
-//app.use(express.urlencoded()); //handle form data
-//!Application level middleware
-//Logging details of every request
-app.use((req, res, next) => {
-  console.log("App level middleware");
-  next(); //call next middleware or call handler
-});
-
-//home
+//step 1: serve static file
+app.use(express.static(path.join(__dirname, "public"))); //dynamic folder path
+//route the html pages
 app.get("/", (req, res) => {
-  res.json({
-    status: "Success",
-    message: "Welcome to Express Routing",
-  });
+  res.sendFile(path.join(__dirname, "/public/views", "home.html"));
 });
-//user Routing
-app.use("/users", isAuthenticated, userRouter);
-//product routing
-app.use("/products", productRouter);
+
+//about
+app.get("/about", (req, res) => {
+  res.sendFile(path.join(__dirname, "/public/views", "about.html"));
+});
+
+//contact
+app.get("/contact", (req, res) => {
+  res.sendFile(path.join(__dirname, "/public/views", "contact.html"));
+});
+
+//gallery
+app.get("/gallery", (req, res) => {
+  res.sendFile(path.join(__dirname, "/public/views", "gallery.html"));
+});
 //start the server
 app.listen(PORT, () => {
   console.log(`Server is running ${PORT}`);
