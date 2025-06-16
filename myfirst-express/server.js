@@ -1,51 +1,42 @@
+require("dotenv").config();
 const express = require("express");
+const mongoose = require("mongoose");
+const PORT = 3000 || process.env.PORT;
+//Instance of express
 const app = express();
-const PORT = 3000;
-const { MongoClient, ServerApiVersion } = require("mongodb");
-//username : kalaiselvipalani02
-//password: Z3XMNvHstX7yZeES
-//mongodburl: mongodb+srv://kalaiselvipalani02:Z3XMNvHstX7yZeES@dbcluster.il7aclb.mongodb.net/studentDb&appName=dbCluster
-const mongodbURL =
-  "mongodb+srv://kalaiselvipalani02:Z3XMNvHstX7yZeES@dbcluster.il7aclb.mongodb.net/studentDb&appName=dbCluster";
 
-//connect to mongodb
-//Step1. create the client
-const client = new MongoClient(mongodbURL, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
-const connectDB = async () => {
+const URL = process.env.URL;
+
+//Connect to mongodb
+const connectToDB = async () => {
   try {
-    await client.connect();
-    console.log("MongoDb connected");
-    const database = client.db("mernfullstack");
-
-    //Collections
-    //Create employees collection
-
-    const employees = database.collection("employees");
-    const employeesDocs = [
-      { name: "Alice", age: 25, department: "HR" },
-      { name: "Bob", age: 30, department: "Finance" },
-      { name: "Charlie", age: 35, department: "IT" },
-      { name: "David", age: 40, department: "Operations" },
-      { name: "Eva", age: 45, department: "IT" },
-    ];
-
-    const result = await employees.insertMany(employeesDocs);
-
-    console.log(result);
+    await mongoose.connect(URL);
+    console.log("Mongodb connected successfully");
   } catch (error) {
-    console.log(error);
+    console.log("Error to connecting DB", error);
   }
 };
-//call the db connection
-connectDB();
 
-//start the server
-app.listen(PORT, () => {
-  console.log(`Server is running ${PORT}`);
+//call db DBConnection
+connectToDB();
+
+//!Design Schema
+const userProfileSchema = new mongoose.Schema({
+  username: String,
+  age: Number,
+  birthday: Date,
+  isActive: Boolean,
+  hobby: [String],
+  ObjectId: mongoose.Schema.Types.ObjectId,
+  address: {
+    street: String,
+    city: String,
+    postCode: Number,
+  },
+  customData: mongoose.Schema.Types.Mixed,
 });
+
+//Compile the schema to form Model
+const User = mongoose.model("User", userProfileSchema); //model starts with caps
+//Start the server
+app.listen(PORT, console.log(`Server is running on ${PORT}`));
