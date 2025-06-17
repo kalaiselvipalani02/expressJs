@@ -20,35 +20,48 @@ const connectToDB = async () => {
 //call db DBConnection
 connectToDB();
 
-//Define with builtin validation
-const userProfileSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: [true, "Please username is required"],
-    unique: true,
-    minLength: 3,
-    maxLength: 0,
-  },
-  age: {
-    type: Number,
-    min: 25,
-    max: 60,
-    required: [true, "Please enter age"],
-  },
-  gender: {
-    type: String,
-    enum: ["Male", "Female", "Other"],
-    default: "Other",
-  },
-  email: {
-    type: String,
-    required: true,
-    match: /.+\@.+\..+/,
-  },
-});
+//Address schema
 
-//Step2: Compile the schema to form Model
-const User = mongoose.model("User", userProfileSchema); //model starts with caps
+const addressSchema = new mongoose.Schema(
+  {
+    street: String,
+    city: String,
+    state: String,
+    zip: Number,
+  },
+  { timestamps: true }
+);
+//UserSchema
+const userSchema = new mongoose.Schema(
+  {
+    name: String,
+    email: String,
+    state: String,
+    address: addressSchema, //Embedded doc
+  },
+  { timestamps: true }
+);
 
+const User = mongoose.model("UserProfile", userSchema);
+
+const createUser = async () => {
+  try {
+    const newUser = User.create({
+      name: "Emmanuel",
+      email: "emmanuel@gmail.com",
+      address: {
+        street: "Oak Street",
+        city: "Camp",
+        state: "Ghana",
+        zip: 122,
+      },
+    });
+    console.log(newUser);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+createUser();
 //Start the server
 app.listen(PORT, console.log(`Server is running on ${PORT}`));
