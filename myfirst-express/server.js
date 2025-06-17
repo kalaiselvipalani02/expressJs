@@ -19,49 +19,52 @@ const connectToDB = async () => {
 
 //call db DBConnection
 connectToDB();
-
-//Address schema
-
-const addressSchema = new mongoose.Schema(
+//author schema
+const authorSchema = new mongoose.Schema({
+  name: String,
+});
+//compile author schema to form model
+const Author = mongoose.model("Author", authorSchema);
+//book schema
+const bookSchema = new mongoose.Schema(
   {
-    street: String,
-    city: String,
-    state: String,
-    zip: Number,
+    title: String,
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Author",
+      required: true,
+    },
   },
   { timestamps: true }
 );
-//UserSchema
-const userSchema = new mongoose.Schema(
-  {
-    name: String,
-    email: String,
-    state: String,
-    address: addressSchema, //Embedded doc
-  },
-  { timestamps: true }
-);
+const Book = mongoose.model("Book", bookSchema);
 
-const User = mongoose.model("UserProfile", userSchema);
-
-const createUser = async () => {
+//create  author
+const createAuthor = async () => {
   try {
-    const newUser = User.create({
-      name: "Emmanuel",
-      email: "emmanuel@gmail.com",
-      address: {
-        street: "Oak Street",
-        city: "Camp",
-        state: "Ghana",
-        zip: 122,
-      },
+    const authorDoc = await Author.create({
+      name: "Masyntech",
     });
-    console.log(newUser);
+    console.log(authorDoc);
+    return authorDoc;
   } catch (err) {
     console.log(err);
   }
 };
 
-createUser();
+//create book
+const createBook = async () => {
+  try {
+    const author = await createAuthor();
+    const authorDoc = await Book.create({
+      title: "MERN for every one",
+      author: author._id,
+    });
+    console.log(authorDoc);
+  } catch (err) {
+    console.log(err);
+  }
+};
+createBook();
 //Start the server
 app.listen(PORT, console.log(`Server is running on ${PORT}`));
