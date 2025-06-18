@@ -1,70 +1,88 @@
 require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
+const path = require("path");
+const cookieParser = require("cookie-parser");
 const PORT = 3000 || process.env.PORT;
 //Instance of express
 const app = express();
 
-const URL = process.env.URL;
-
-//Connect to mongodb
-const connectToDB = async () => {
-  try {
-    await mongoose.connect(URL);
-    console.log("Mongodb connected successfully");
-  } catch (error) {
-    console.log("Error to connecting DB", error);
-  }
-};
-
-//call db DBConnection
-connectToDB();
-//author schema
-const authorSchema = new mongoose.Schema({
-  name: String,
-});
-//compile author schema to form model
-const Author = mongoose.model("Author", authorSchema);
-//book schema
-const bookSchema = new mongoose.Schema(
+//middleware
+app.use(express.urlencoded({ extended: true }));
+//set view engine
+app.set("view engine", "ejs");
+//cookie middleware
+app.use(cookieParser());
+const users = [
   {
-    title: String,
-    author: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Author",
-      required: true,
-    },
+    username: "John",
+    password: "123",
+    role: "admin",
   },
-  { timestamps: true }
-);
-const Book = mongoose.model("Book", bookSchema);
+  {
+    username: "Sarah",
+    password: "1234",
+    role: "admin",
+  },
+];
 
-//create  author
-const createAuthor = async () => {
-  try {
-    const authorDoc = await Author.create({
-      name: "Masyntech",
-    });
-    console.log(authorDoc);
-    return authorDoc;
-  } catch (err) {
-    console.log(err);
-  }
-};
+//home route
+app.get("/", (req, res) => {
+  res.render("index");
+});
 
-//create book
-const createBook = async () => {
-  try {
-    const author = await createAuthor();
-    const authorDoc = await Book.create({
-      title: "MERN for every one",
-      author: author._id,
-    });
-    console.log(authorDoc);
-  } catch (err) {
-    console.log(err);
+//home route
+app.get("/index", (req, res) => {
+  res.render("index");
+});
+//login
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
+//login
+app.post("/login", (req, res) => {
+  //find user login details
+  const { username, password } = req.body;
+  const userFound = users.find((user) => {
+    return user.username === username && user.password === password;
+  });
+
+  //set cookie
+  //* Prepare login user details. Setting cookie
+  res.cookie("userData", JSON.stringify(userFound), {
+    maxAge: 3 * 24 * 60 * 1000, // expiry in 3 days
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict",
+  });
+
+  //cookie valid, render dashboard otherwise redirect to login page
+  if (userFound) {
+    res.redirect("/dashboard");
   }
-};
-createBook();
+});
+
+//submit details
+app.get("/dashboard", (req, res) => {
+  //grab the user from cookie
+  const userData = req.cookies.userData
+    ? JSON.parse(req.cookies.userData)
+    : null;
+  const username = userData ? userData.username : null;
+  //const userData = req.cookies()
+  //render the dashboard or login page
+  if (username) {
+    res.render("dashboard", { username });
+  } else {
+    res.redirect("/login");
+  }
+});
+
+//logout
+app.get("/logout", (req, res) => {
+  //clear cookie
+  res.clearCookie("userData");
+  res.status(200).json({ message: "Logged out successfully" });
+});
 //Start the server
 app.listen(PORT, console.log(`Server is running on ${PORT}`));
