@@ -1,58 +1,28 @@
 require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
+
 const cookieParser = require("cookie-parser");
-const bcrypt = require("bcrypt");
 const PORT = 3000 || process.env.PORT;
-const URL = process.env.URL;
 //Instance of express
 const app = express();
-
-//connect to db
-mongoose
-  .connect(URL)
-  .then(() => {
-    console.log("DB connection successfully");
-  })
-  .catch((e) => console.log(e));
-
-//create the loginSchema
-const loginSchema = new mongoose.Schema({
-  username: String,
-  password: String,
-  role: {
-    type: String,
-    default: "user",
-  },
-});
-
-//compile the schema to form mongoose.model
-const Login = mongoose.model("Login", loginSchema);
-
-const createLoginUser = async () => {
-  hashedPassword = await bcrypt.hash("123", 10);
-  await Login.create({
-    username: "Masyntech",
-    password: hashedPassword,
-    role: "user",
-  });
-};
-
-//createLoginUser();
 //form data
 app.use(express.urlencoded({ extended: true }));
 //json  data
 app.use(express.json());
 //cookie middleware
 app.use(cookieParser());
-
-//----Custom middleware ---
-
-//!--- isAuthenticated (Authentication)
-
-//!-- isAdmin (Authorization)
-
-//!-- configure Express session
+const users = [
+  {
+    username: "John",
+    password: "123",
+    role: "admin",
+  },
+  {
+    username: "Sarah",
+    password: "1234",
+    role: "admin",
+  },
+];
 
 //home route
 app.get("/", (req, res) => {
@@ -71,13 +41,24 @@ app.get("/login", (req, res) => {
 }); */
 
 //login
-app.post("/login", async (req, res) => {
+app.post("/login", (req, res) => {
   //find user login details
   const { username, password } = req.body;
-  const userFound = await Login.findOne({
-    username,
+  const userFound = users.find((user) => {
+    return user.username === username && user.password === password;
   });
-  if (userFound && (await bcrypt.compare(password, userFound.password))) {
+
+  //set cookie
+  //* Prepare login user details. Setting cookie
+  res.cookie("userData", JSON.stringify(userFound), {
+    maxAge: 3 * 24 * 60 * 1000, // expiry in 3 days
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict",
+  });
+
+  //cookie valid, render dashboard otherwise redirect to login page
+  if (userFound) {
     res.json({
       message: "Login successful",
     });
@@ -88,12 +69,6 @@ app.post("/login", async (req, res) => {
   }
 });
 
-//Admin route for Admin user only access
-app.get("/admin-only", (req, res) => {
-  res.json({
-    message: "Admin Dashboard",
-  });
-});
 //submit details
 app.get("/dashboard", (req, res) => {
   //grab the user from cookie
